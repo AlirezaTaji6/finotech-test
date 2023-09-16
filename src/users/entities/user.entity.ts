@@ -43,7 +43,7 @@ export class User extends ParentEntity {
   }
 
   async isPasswordCorrect(rawPassword: string): Promise<boolean> {
-    const isCorrect = await compare(rawPassword, this.password);
+    const isCorrect = await compare(rawPassword, this.password || '');
     return isCorrect;
   }
 }

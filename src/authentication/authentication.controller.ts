@@ -2,18 +2,26 @@ import {
   Body,
   Controller,
   ForbiddenException,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
   Query,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AuthenticationResponse, SendOtpDto, VerifyOtpDto } from './dto';
+import {
+  AuthenticationResponse,
+  LoginDto,
+  SendOtpDto,
+  VerifyOtpDto,
+} from './dto';
 import { ConfigService } from '@nestjs/config';
 import { AuthenticationService } from './authentication.service';
 import { Environments } from '../common/enums';
 import { UsersService } from '../users/users.service';
 import { UserErrors } from '../users/enums';
+import { AuthenticationErrors } from './enums';
 
 @ApiTags('Authentication')
 @Controller('authentication')
@@ -39,7 +47,7 @@ export class AuthenticationController {
     return {};
   }
 
-  @Post('otp/verify')
+  @Get('otp/verify')
   async verifyCode(@Query() { email, code }: VerifyOtpDto) {
     await this.authenticationService.isOtpCorrect(email, code);
 
@@ -47,6 +55,25 @@ export class AuthenticationController {
     const accessToken = await this.authenticationService.generateToken(user.id);
     return new AuthenticationResponse({
       user,
+      accessToken,
+    });
+  }
+
+  @Post('login')
+  async login(@Body() { email, password }: LoginDto) {
+    const userFound = await this.usersService.findByEmail(email);
+    if (!userFound)
+      throw new UnauthorizedException(AuthenticationErrors.INVALID_CREDINTIALS);
+
+    const isPasswordCorrect = await userFound.isPasswordCorrect(password);
+    if (!isPasswordCorrect)
+      throw new UnauthorizedException(AuthenticationErrors.INVALID_CREDINTIALS);
+
+    const accessToken = await this.authenticationService.generateToken(
+      userFound.id,
+    );
+    return new AuthenticationResponse({
+      user: userFound,
       accessToken,
     });
   }

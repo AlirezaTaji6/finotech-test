@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Matches } from 'class-validator';
+import { IsString, Matches, MinLength } from 'class-validator';
 import { ValidationConstraints } from '../../common/constants';
+import { IsPassword } from '../../common/decorators';
 
 export class UpdateUserDto {
   @ApiProperty()
@@ -11,8 +12,7 @@ export class UpdateUserDto {
   @IsString()
   lastName: string;
 
-  @ApiProperty()
-  @IsString()
-  @Matches(ValidationConstraints.passwordPattern)
+  @ApiProperty({ example: '1234' })
+  @IsPassword()
   password: string;
 }
