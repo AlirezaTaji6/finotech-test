@@ -9,12 +9,15 @@ import { User } from './entities/user.entity';
 import { UserErrors } from './enums';
 import { UpdateUserDto } from './dto';
 import { CommonErrors } from '../common/enums';
+import { hash } from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private readonly configService: ConfigService,
   ) {}
 
   async findOne(id: number, required = false) {
@@ -42,6 +45,10 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    updateUserDto.password = await hash(
+      updateUserDto.password,
+      this.configService.get('app.hashSaltRounds'),
+    );
     const result = await this.usersRepository.update(id, updateUserDto);
     if (!result.affected)
       throw new ServiceUnavailableException(CommonErrors.UPDATE_FAILED);
