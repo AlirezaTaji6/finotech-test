@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Patch, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtGuard } from '../authentication/guards';
 import { GetUser } from '../common/decorators';
@@ -13,7 +13,7 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Patch()
+  @Put()
   async update(@GetUser() user: User, @Body() updateUserDto: UpdateUserDto) {
     await this.usersService.update(user.id, updateUserDto);
     return {};
