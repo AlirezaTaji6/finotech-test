@@ -17,15 +17,6 @@ async function bootstrap() {
     exclude: ['/'],
   });
 
-  const corsOptions = {
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    credentials: true,
-  };
-
-  app.enableCors(corsOptions);
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

@@ -1,7 +1,7 @@
 import {
   Body,
+  ConflictException,
   Controller,
-  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -22,6 +22,7 @@ import { Environments } from '../common/enums';
 import { UsersService } from '../users/users.service';
 import { UserErrors } from '../users/enums';
 import { AuthenticationErrors } from './enums';
+import { MailService } from '../mail';
 
 @ApiTags('Authentication')
 @Controller('authentication')
@@ -30,16 +31,17 @@ export class AuthenticationController {
     private readonly authenticationService: AuthenticationService,
     private readonly usersService: UsersService,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {}
 
   @HttpCode(HttpStatus.OK)
   @Post('otp/send')
   async sendCode(@Body() { email }: SendOtpDto) {
     const isExists = await this.usersService.isExistsByEmail(email);
-    if (isExists) throw new ForbiddenException(UserErrors.EMAIL_DUPLICATED);
+    if (isExists) throw new ConflictException(UserErrors.EMAIL_DUPLICATED);
 
     const code = await this.authenticationService.setOtp(email);
-    await this.authenticationService.sendOtp(email, code);
+    await this.mailService.sendConfirmation(email, code);
 
     if (this.configService.get('app.env') !== Environments.PRODUCTION) {
       return { code };
@@ -59,6 +61,7 @@ export class AuthenticationController {
     });
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() { email, password }: LoginDto) {
     const userFound = await this.usersService.findByEmail(email);

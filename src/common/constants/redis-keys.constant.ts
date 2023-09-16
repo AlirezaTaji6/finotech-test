@@ -8,7 +8,7 @@ interface RedisKeyResult {
 export const RedisKeys = {
   otp: (key: string | number): RedisKeyResult => {
     return {
-      name: `phone-number-verification-code:${String(key)}`,
+      name: `otp:${String(key)}`,
       ttl: redisConfig().otpCodeTtl,
     };
   },

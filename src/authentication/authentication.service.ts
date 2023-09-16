@@ -10,7 +10,6 @@ import { MailService } from '../mail';
 export class AuthenticationService {
   constructor(
     private jwtService: JwtService,
-    private readonly mailService: MailService,
     private readonly cachingService: CachingService,
   ) {}
 
@@ -21,15 +20,11 @@ export class AuthenticationService {
     return token;
   }
 
-  async setOtp(phoneNumber: string): Promise<string> {
+  async setOtp(email: string): Promise<string> {
     const code = generateVerificationCode();
-    const { name, ttl } = RedisKeys.otp(phoneNumber);
+    const { name, ttl } = RedisKeys.otp(email);
     await this.cachingService.set(name, String(code), { ttl });
     return code;
-  }
-
-  async sendOtp(email: string, code: string) {
-    await this.mailService.sendConfirmation(email, code);
   }
 
   async isOtpCorrect(email: string, code: string) {
@@ -42,8 +37,8 @@ export class AuthenticationService {
     await this.removeOtpVerification(email);
   }
 
-  private removeOtpVerification(phoneNumber: string) {
-    const { name } = RedisKeys.otp(phoneNumber);
+  private removeOtpVerification(email: string) {
+    const { name } = RedisKeys.otp(email);
     return this.cachingService.del(name);
   }
 }
